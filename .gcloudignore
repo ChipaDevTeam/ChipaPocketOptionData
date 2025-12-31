@@ -1,0 +1,72 @@
+# This file specifies files that are *not* uploaded to Google Cloud
+# using gcloud commands. It follows the same syntax as .gitignore.
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+docker-compose.yml
+docker-compose.override.yml
+.dockerignore
+
+# Documentation (comment out if you need docs in Cloud Build)
+*.md
+docs/
+README.md
+
+# Build artifacts (will be built in Cloud)
+target/
+**/target/
+build/
+dist/
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.vs/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Test files
+tests/
+**/test/
+**/*.test.*
+**/*.spec.*
+.pytest_cache/
+coverage/
+
+# CI/CD (except cloudbuild.yaml)
+.github/
+.gitlab-ci.yml
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+/tmp/
+*.tmp
+*.temp
+
+# Package manager lock files (generated during build)
+# Uncomment if you want them generated fresh in Cloud Build
+# package-lock.json
+# yarn.lock
+# Cargo.lock
+
+# Project-specific (customize for your needs)
+# Add files/folders that shouldn't be uploaded to Cloud Build

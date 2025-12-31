@@ -1,0 +1,63 @@
+{
+  "project": {
+    "name": "my-project",
+    "displayName": "My Project",
+    "description": "Project description",
+    "version": "1.0.0"
+  },
+  "docker": {
+    "imageName": "my-project-api",
+    "containerName": "my-project-api",
+    "port": 8080,
+    "appDirectory": "/app",
+    "tempDirectory": "/tmp/my-project",
+    "user": "appuser",
+    "userId": 1000
+  },
+  "build": {
+    "sourcePath": "./src",
+    "buildCommand": "make build",
+    "binaryName": "api-server",
+    "targetPlatforms": ["linux/amd64"],
+    "healthCheckEndpoint": "/health"
+  },
+  "gcp": {
+    "projectId": "",
+    "region": "us-central1",
+    "serviceName": "my-project-api",
+    "cloudRun": {
+      "memory": "2Gi",
+      "cpu": "2",
+      "timeout": "600",
+      "maxInstances": "10",
+      "minInstances": "0",
+      "concurrency": "80",
+      "allowUnauthenticated": true
+    },
+    "cloudBuild": {
+      "machineType": "E2_HIGHCPU_8",
+      "diskSizeGb": 100,
+      "timeoutSeconds": 3600
+    }
+  },
+  "environment": {
+    "production": {
+      "LOG_LEVEL": "info",
+      "API_BASE_URL": "https://api.example.com"
+    },
+    "staging": {
+      "LOG_LEVEL": "debug",
+      "API_BASE_URL": "https://staging-api.example.com"
+    },
+    "development": {
+      "LOG_LEVEL": "debug",
+      "API_BASE_URL": "http://localhost:8080"
+    }
+  },
+  "features": {
+    "enableHealthCheck": true,
+    "enableCORS": true,
+    "enableMetrics": false,
+    "enableTracing": false
+  }
+}

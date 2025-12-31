@@ -1,0 +1,96 @@
+# Docker Compose Configuration Template
+# Customize service names, ports, and environment variables for your project
+
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Customize build arguments
+        APP_DIR: ${APP_DIR:-/app}
+        APP_USER: ${APP_USER:-appuser}
+        APP_UID: ${APP_UID:-1000}
+        APP_PORT: ${PORT:-8080}
+    container_name: ${CONTAINER_NAME:-my-project-api}
+    ports:
+      - "${HOST_PORT:-8080}:${PORT:-8080}"
+    environment:
+      # Server configuration
+      - PORT=${PORT:-8080}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - NODE_ENV=${NODE_ENV:-development}
+      
+      # Application settings (customize based on your needs)
+      - TEMP_DIR=${TEMP_DIR:-/tmp/app}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-10485760}
+      
+      # External services (configure in .env file)
+      - API_BASE_URL=${API_BASE_URL:-}
+      - DATABASE_URL=${DATABASE_URL:-}
+      - REDIS_URL=${REDIS_URL:-}
+      
+      # Custom environment variables
+      # Add your project-specific variables here
+    volumes:
+      # Mount temporary directory for application data
+      - app-temp:${TEMP_DIR:-/tmp/app}
+      
+      # Optional: Mount source for development (uncomment for hot reload)
+      # - ./src:/app/src:ro
+      
+      # Optional: Mount configuration files
+      # - ./config:/app/config:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-8080}/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - app-network
+    # Uncomment if you need to override the default command
+    # command: ["./your-custom-command"]
+
+  # Add more services as needed (database, cache, etc.)
+  # Example: PostgreSQL
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: ${PROJECT_NAME:-myproject}-postgres
+  #   environment:
+  #     - POSTGRES_USER=${DB_USER:-postgres}
+  #     - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+  #     - POSTGRES_DB=${DB_NAME:-mydb}
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - app-network
+  
+  # Example: Redis
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: ${PROJECT_NAME:-myproject}-redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis-data:/data
+  #   networks:
+  #     - app-network
+
+volumes:
+  app-temp:
+    driver: local
+  # Add more volumes as needed
+  # postgres-data:
+  #   driver: local
+  # redis-data:
+  #   driver: local
+
+networks:
+  app-network:
+    driver: bridge

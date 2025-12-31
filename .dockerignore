@@ -1,0 +1,81 @@
+# Build artifacts
+/target/
+**/target/
+/build/
+/dist/
+*.o
+*.a
+
+# Temporary files
+/tmp/
+*.tmp
+*.temp
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.vs/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Logs
+*.log
+logs/
+
+# Docker
+docker-compose.yml
+docker-compose.override.yml
+.dockerignore
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# Documentation (optional, uncomment if you want to exclude)
+# *.md
+# docs/
+
+# Tests (optional, uncomment if you want to exclude)
+# tests/
+# **/*.test.*
+# **/*.spec.*
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+cloudbuild.yaml
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Go
+vendor/
+
+# Rust
+Cargo.lock  # Include if using workspace
+
+# Project-specific (customize for your project)
+# Add files/folders that shouldn't be in the Docker image
