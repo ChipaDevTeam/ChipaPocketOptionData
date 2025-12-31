@@ -1,52 +1,355 @@
-# Project Template
+# ChipaPocketOptionData
 
-A production-ready template for containerized applications with automated deployment to Google Cloud Run.
+[![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**ChipaPocketOptionData** is a powerful Python library for collecting high-volume market data from PocketOption using multiple demo accounts with optional proxy support via multiprocessing. Built on top of [BinaryOptionsToolsV2](https://github.com/ChipaDevTeam/BinaryOptionsToolsV2).
+
+## ✨ Key Features
+
+- 🚀 **Multi-Process Architecture**: Collect data using multiple demo accounts simultaneously
+- 🔄 **High Throughput**: Leverage multiprocessing to maximize data collection speed
+- 🌐 **Proxy Support**: Each process can use its own proxy server for distributed data collection
+- 📊 **Multiple Data Collection Methods**:
+  - Real-time symbol subscriptions
+  - Time-based chunked candles
+  - Count-based aggregated candles
+  - Historical candle data
+- �️ **Fault Tolerant**: Automatic reconnection on errors
+- 📝 **Comprehensive Logging**: Built-in logging system for debugging and monitoring
+- 🎯 **Simple API**: Easy-to-use interface inspired by BinaryOptionsToolsV2
+
+## 🎯 Why ChipaPocketOptionData?
+
+This library solves the common problem of needing high-volume market data from PocketOption:
+
+1. **Multiple Demo Accounts**: Create several demo accounts to bypass rate limits
+2. **Proxy Distribution**: Use different proxies for each account to avoid IP-based restrictions
+3. **Parallel Collection**: Collect data from multiple sources simultaneously
+4. **No Rate Limiting Worries**: Distribute your data collection across multiple connections
+
+## 📦 Installation
+
+### Using pip (recommended)
+
+```bash
+pip install ChipaPocketOptionData
+```
+
+### From source
+
+```bash
+git clone https://github.com/ChipaDevTeam/ChipaPocketOptionData.git
+cd ChipaPocketOptionData
+pip install -e .
+```
 
 ## 🚀 Quick Start
 
-### 1. Initialize Your Project
+### Basic Usage (No Proxies)
 
-Run the setup script to customize this template for your project:
+```python
+from ChipaPocketOptionData import subscribe_symbol_timed
+from datetime import timedelta
 
-```bash
-./setup.sh
+# Your demo account SSIDs
+ssids = [
+    "your_demo_ssid_1",
+    "your_demo_ssid_2",
+    "your_demo_ssid_3",
+]
+
+# Start collecting 5-second candles
+collector = subscribe_symbol_timed(
+    asset="EURUSD_otc",
+    time_delta=timedelta(seconds=5),
+    ssids=ssids,
+    proxy_support=False
+)
+
+# Iterate over incoming data
+for candle in collector:
+    if 'error' in candle:
+        print(f"Error: {candle['error']}")
+        continue
+    
+    print(f"Candle from {candle['ssid']}: "
+          f"Open={candle['open']}, Close={candle['close']}")
 ```
 
-This interactive script will guide you through configuring:
-- Project name and description
-- Docker container settings
-- GCP deployment configuration
-- Service ports and endpoints
+### With Proxy Support
 
-### 2. Configure Your Application
+```python
+from ChipaPocketOptionData import subscribe_symbol_timed, ProxyConfig
 
-After running setup, edit the following files as needed:
+ssids = ["ssid1", "ssid2", "ssid3"]
 
-#### `project.config.json`
-Central configuration file containing all project settings:
-- Project metadata (name, description, version)
-- Docker configuration (image name, ports, directories)
-- Build settings (commands, binary names, platforms)
-- GCP settings (project ID, region, Cloud Run configuration)
-- Environment-specific settings (production, staging, development)
+# Configure proxy servers
+proxies = [
+    ProxyConfig(host="proxy1.com", port=8080, username="user1", password="pass1"),
+    ProxyConfig(host="proxy2.com", port=8080, username="user2", password="pass2"),
+    ProxyConfig(host="proxy3.com", port=1080, protocol="socks5"),
+]
 
-#### `.env`
-Environment variables for your application (created from `.env.example`):
-- Server configuration (port, logging)
-- External service URLs (APIs, databases)
-- Cloud storage settings
-- Feature flags
+# Start collecting with proxies
+collector = subscribe_symbol_timed(
+    asset="EURUSD_otc",
+    time_delta=5,  # Can use int for seconds
+    ssids=ssids,
+    proxies=proxies,
+    proxy_support=True
+)
 
-#### `Dockerfile`
-Customize the build process for your technology stack:
-- Update base images for your language/framework
-- Add build dependencies
-- Configure build commands
-- Copy artifacts to runtime image
+for candle in collector:
+    print(f"Received: {candle}")
+```
 
-### 3. Local Development
+## 📚 Documentation
 
-#### Using Docker Compose
+### Main Functions
+
+#### `subscribe_symbol(asset, ssids, proxies=None, proxy_support=False, **config_kwargs)`
+
+Subscribe to real-time symbol updates (1-second candles).
+
+```python
+from ChipaPocketOptionData import subscribe_symbol
+
+collector = subscribe_symbol(
+    asset="EURUSD_otc",
+    ssids=["ssid1", "ssid2"],
+    proxy_support=False
+)
+
+for candle in collector:
+    print(candle)
+```
+
+#### `subscribe_symbol_timed(asset, time_delta, ssids, proxies=None, proxy_support=False, **config_kwargs)`
+
+Subscribe to time-chunked symbol updates.
+
+```python
+from ChipaPocketOptionData import subscribe_symbol_timed
+from datetime import timedelta
+
+collector = subscribe_symbol_timed(
+    asset="EURUSD_otc",
+    time_delta=timedelta(seconds=5),  # or just: time_delta=5
+    ssids=["ssid1", "ssid2"],
+    proxy_support=False
+)
+
+for candle in collector:
+    print(candle)  # 5-second aggregated candles
+```
+
+#### `subscribe_symbol_chunked(asset, chunk_size, ssids, proxies=None, proxy_support=False, **config_kwargs)`
+
+Subscribe to chunk-aggregated symbol updates.
+
+```python
+from ChipaPocketOptionData import subscribe_symbol_chunked
+
+collector = subscribe_symbol_chunked(
+    asset="EURUSD_otc",
+    chunk_size=15,  # Aggregate every 15 candles
+    ssids=["ssid1", "ssid2"],
+    proxy_support=False
+)
+
+for candle in collector:
+    print(candle)  # Aggregated from 15 candles
+```
+
+#### `get_candles(asset, period, time, ssids, proxies=None, proxy_support=False, **config_kwargs)`
+
+Get historical candles (non-streaming).
+
+```python
+from ChipaPocketOptionData import get_candles
+
+candles = get_candles(
+    asset="EURUSD_otc",
+    period=60,  # 1-minute candles
+    time=3600,  # Last hour
+    ssids=["ssid1", "ssid2"]
+)
+
+print(f"Collected {len(candles)} candles")
+```
+
+### Configuration
+
+#### DataCollectorConfig
+
+```python
+from ChipaPocketOptionData import DataCollectorConfig, ProxyConfig
+
+config = DataCollectorConfig(
+    ssids=["ssid1", "ssid2"],
+    proxies=[ProxyConfig(host="proxy.com", port=8080)],
+    proxy_support=True,
+    max_workers=2,  # Defaults to len(ssids)
+    reconnect_on_error=True,
+    error_retry_delay=5,  # seconds
+    log_level="INFO",
+    log_path="./logs"
+)
+```
+
+#### ProxyConfig
+
+```python
+from ChipaPocketOptionData import ProxyConfig
+
+# HTTP proxy with auth
+proxy = ProxyConfig(
+    host="proxy.example.com",
+    port=8080,
+    username="user",
+    password="pass",
+    protocol="http"
+)
+
+# SOCKS5 proxy without auth
+proxy = ProxyConfig(
+    host="proxy.example.com",
+    port=1080,
+    protocol="socks5"
+)
+```
+
+## 📖 Examples
+
+Check out the [examples/](examples/) directory for more detailed examples:
+
+- **[basic_usage.py](examples/basic_usage.py)**: Simple data collection without proxies
+- **[with_proxy_support.py](examples/with_proxy_support.py)**: Using multiple proxies
+- **[save_to_database.py](examples/save_to_database.py)**: Storing data in SQLite
+- **[multiple_assets.py](examples/multiple_assets.py)**: Collecting from multiple assets simultaneously
+
+## 🔧 Advanced Usage
+
+### Context Manager
+
+```python
+from ChipaPocketOptionData import subscribe_symbol_timed
+
+ssids = ["ssid1", "ssid2"]
+
+with subscribe_symbol_timed("EURUSD_otc", 5, ssids=ssids) as collector:
+    for i, candle in enumerate(collector):
+        print(candle)
+        if i >= 100:
+            break
+# Automatically cleaned up
+```
+
+### Error Handling
+
+```python
+collector = subscribe_symbol_timed(
+    asset="EURUSD_otc",
+    time_delta=5,
+    ssids=["ssid1", "ssid2"],
+    reconnect_on_error=True,
+    error_retry_delay=10
+)
+
+for candle in collector:
+    if 'error' in candle:
+        print(f"Error from {candle['ssid']}: {candle['error']}")
+        # Error is logged, connection will be retried
+        continue
+    
+    # Process valid candle
+    process_candle(candle)
+```
+
+### Logging
+
+```python
+collector = subscribe_symbol_timed(
+    asset="EURUSD_otc",
+    time_delta=5,
+    ssids=["ssid1", "ssid2"],
+    log_level="DEBUG",  # DEBUG, INFO, WARN, ERROR
+    log_path="./logs"   # Log directory
+)
+```
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Main Process                         │
+│  ┌───────────────────────────────────────────────────┐ │
+│  │       MultiProcessDataCollector                   │ │
+│  │  - Manages worker processes                       │ │
+│  │  - Aggregates data from queue                     │ │
+│  │  - Handles graceful shutdown                      │ │
+│  └───────────────────────────────────────────────────┘ │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+      ┌────────────┼────────────┐
+      │            │            │
+      ▼            ▼            ▼
+┌──────────┐ ┌──────────┐ ┌──────────┐
+│ Worker 1 │ │ Worker 2 │ │ Worker N │
+│ SSID 1   │ │ SSID 2   │ │ SSID N   │
+│ Proxy 1  │ │ Proxy 2  │ │ Proxy N  │
+│          │ │          │ │          │
+│ BO2 API  │ │ BO2 API  │ │ BO2 API  │
+└─────┬────┘ └─────┬────┘ └─────┬────┘
+      │            │            │
+      └────────────┼────────────┘
+                   │
+                   ▼
+           ┌───────────────┐
+           │ Shared Queue  │
+           │ (Thread-safe) │
+           └───────────────┘
+```
+
+## 📋 Requirements
+
+- Python 3.8+
+- BinaryOptionsToolsV2 >= 1.0.0
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built on top of [BinaryOptionsToolsV2](https://github.com/ChipaDevTeam/BinaryOptionsToolsV2)
+- Inspired by the need for high-volume data collection from PocketOption
+
+## 📧 Support
+
+If you have any questions or issues, please:
+
+1. Check the [examples/](examples/) directory
+2. Open an issue on [GitHub](https://github.com/ChipaDevTeam/ChipaPocketOptionData/issues)
+
+## ⚠️ Disclaimer
+
+This library is for educational and research purposes only. Use at your own risk. Make sure to comply with PocketOption's Terms of Service.
+
+---
+
+Made with ❤️ by the ChipaDev Team
 
 ```bash
 # Start all services

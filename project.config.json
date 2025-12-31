@@ -1,8 +1,8 @@
 {
   "project": {
-    "name": "my-project",
-    "displayName": "My Project",
-    "description": "Project description",
+    "name": "ChipaPocketOptionData",
+    "displayName": "ChipaPocketOptionData",
+    "description": "Multi-process data collection library for PocketOption using BinaryOptionsToolsV2",
     "version": "1.0.0"
   },
   "docker": {
